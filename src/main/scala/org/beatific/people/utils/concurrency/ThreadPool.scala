@@ -23,7 +23,9 @@ class ThreadPool(poolsize: Int) {
           def run() {
             try onSuccess(runnable) catch {
               case NonFatal(e) => onFail(e)
-            } finally onFinal
+            } finally {
+              onFinal
+            }
           }
         })
         Available

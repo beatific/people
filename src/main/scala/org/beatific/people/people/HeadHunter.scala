@@ -13,61 +13,32 @@ object HeadHunter {
 
   var addressBook = AddressBook
   var publisher = Publisher
-  val returnCount: Map[String, Int] = Map()
 
-  def +[T](people: People[T]) = {
+  def +[T](people: Worker[T]) = {
     addressBook + people
   }
 
-  def <<[T](people: People[T], letter: T) {
+  def <<[T](people: Worker[T], letter: T) {
 
-    returnCount ++ people.id
-    val other: People[T] = this ? people.id
-    other.receive(letter)
+//    val other: People[T] = this ? people.id
+    WaitingWorker(people).receive(letter)
   }
 
   def ?[T](name: String): People[T] = {
-    val address: Option[Worker[T]] = addressBook find name 
+    val worker: Worker[T] = addressBook find name
 
-    address match {
-      case Some(people) => people
-      case None => {
-        PresentWorldChecker() match {
-          case true => synchronized {
+    worker.remainingPeople() match {
+      case remaining if remaining > 0 => worker
+      case _ => {
+        val human: Option[People[T]] = OtherWorldBroker(name)
 
-            val worker: Option[Worker[T]] = addressBook find name
-
-            worker match {
-              case Some(people) => people
-              case None =>
-                val human: Option[People[T]] = People(name)
-
-                human match {
-                  case Some(people) => people
-                  case None         => throw new RuntimeException("There is no people named '" + name + "'!")
-                }
-            }
+        human match {
+          case Some(ailen) => ailen
+          case None => {
+            WaitingWorker(worker)
           }
-          case false =>
-            val human: Option[People[T]] = OtherWorldBroker(name)
-
-            human match {
-              case Some(ailen) => ailen
-              case None => {
-                addressBook findForce name
-              }
-            }
         }
       }
-    }
-  }
-
-  def finish[T](people: People[T]) {
-
-    try {
-      addressBook.release(people)
-    } catch {
-      case e: IllegalMonitorStateException =>
     }
   }
 

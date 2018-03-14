@@ -295,6 +295,40 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 		if (c == 0)
 			signalNotEmpty();
 	}
+	
+	public boolean putIfNotFull(E e) throws InterruptedException {
+		if (e == null)
+			throw new NullPointerException();
+		// Note: convention in all put/take/etc is to preset local var
+		// holding count negative to indicate failure unless set.
+		int c = -1;
+		Node<E> node = new Node<E>(e);
+		final ReentrantLock putLock = this.putLock;
+		final AtomicInteger count = this.count;
+		putLock.lockInterruptibly();
+		try {
+			/*
+			 * Note that count is used in wait guard even though it is not protected by
+			 * lock. This works because count can only decrease at this point (all other
+			 * puts are shut out by lock), and we (or some other waiting put) are signalled
+			 * if it ever changes from capacity. Similarly for all other uses of count in
+			 * other wait guards.
+			 */
+			if (count.get() == capacity) {
+				return false;
+			}
+			enqueue(node);
+			c = count.getAndIncrement();
+			if (c + 1 < capacity)
+				notFull.signal();
+		} finally {
+			putLock.unlock();
+		}
+		if (c == 0)
+			signalNotEmpty();
+		
+		return true;
+	}
 
 	/**
 	 * Inserts the specified element at the tail of this queue, waiting if necessary
@@ -369,6 +403,29 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 			signalNotEmpty();
 		return c >= 0;
 	}
+	
+	public E takeIfNotEmpty() throws InterruptedException {
+		E x;
+		int c = -1;
+		final AtomicInteger count = this.count;
+		final ReentrantLock takeLock = this.takeLock;
+		takeLock.lockInterruptibly();
+		try {
+			if (count.get() == 0) {
+				return null;
+			}
+			x = dequeue();
+			c = count.getAndDecrement();
+			if (c > 1)
+				notEmpty.signal();
+		} finally {
+			takeLock.unlock();
+		}
+		if (c == capacity)
+			signalNotFull();
+		return x;
+	}
+	
 
 	public E take() throws InterruptedException {
 		E x;

@@ -71,7 +71,7 @@ object ImplicitUtils {
 
     def af = new SeekableFile(str)
     def f = new RandomAccessFile(str)
-    def asClass(basePackage:String) = ClassSupports.findClassName(basePackage, str)
+    def asClassOf(basePackage:String) = ClassSupports.findClassName(basePackage, str)
 
     def loadObject[T]()(implicit manifest: Manifest[T]): T = {
       parse(Source.fromFile(str)("UTF-8").mkString).values.asInstanceOf[T]

@@ -21,15 +21,20 @@ class CountAlarm[T, V](last: Int)(implicit tag: ClassTag[T]) {
     }
   }
 
-  private def push(queue :List[T]): List[T] = {
-    
+  private def push(queue: List[T]): List[T] = {
+
     cursor match {
       case c if c >= last => queue
-      case c              => {
-        cursor += 1
+      case c => {
+        
         buffer(c) match {
-          case value if value == null => queue
-          case value => push(queue :+ buffer(c)) 
+          case value if value == null => {
+            queue
+          }
+          case value => {
+            cursor += 1
+            push(queue :+ buffer(c))
+          }
         }
       }
     }

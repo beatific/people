@@ -10,37 +10,36 @@ import org.beatific.people.utils.concurrency.ThreadEach
 
 abstract class Worker[T] extends People[T] {
 
-  val time = People.time
+  val id: String = this.getClass.getName.substring(this.getClass.getName.lastIndexOf(".") + 1)
+  val time = size.threadpool
   val inbox: Inbox[T] = PostOffice.inbox(this)
-  
-  HeadHunter + this
 
   def remainingPeople() = {
-    time.pool.active
+    time.pool.active + inbox.remainingCapacity
   }
-  
+
+  HeadHunter + this
+
   private def readMore() {
     inbox >> match {
-      case Some(taken) => receive(taken)
-      case None =>
+      case Some(taken) => read(taken)
+      case None        => 
     }
+  }
+
+  def read(letter: T) {
+    try work(letter)
+    finally readMore()
   }
 
   protected def work(working: T)
 
-  private def read(letter: T) {
-
-    work(letter)
-    receiver.clear
-    HeadHunter finish this
-  }
-
   def receive(letter: T) {
 
-    time(runnable = read(letter), onFinal = readMore) match {
+    time(runnable = read(letter)) match {
       case Unavailable => {
         inbox + letter match {
-          case None => HeadHunter << (this, letter)
+          case None    => HeadHunter << (this, letter)
           case Some(_) =>
         }
       }

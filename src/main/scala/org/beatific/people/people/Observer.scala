@@ -7,13 +7,12 @@ import org.beatific.people.event.Event
 abstract class Observer[T <: Event] extends People[T] {
 
   val time = size.threadpool
-  
   Publisher + this
   
-  def observe(finish : => Unit)
+  def observe()
 
   def receive(letter: T): Unit = {
-    observe(HeadHunter finish this)
+    
+    observe()
   }
-  
 }

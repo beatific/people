@@ -14,7 +14,11 @@ class AsynchronousUnit(iter: AsynchronousIterator, key: Int) {
   def cache(): String = {
     iter.cache.length match {
       case length if length == 0 => ""
-      case _                     => iter.cache.reduce(_ + _)
+      case _                     => {
+        val cache :String = iter.cache.reduce(_ + _)
+        iter.cache = Nil
+        cache
+      }
     }
   }
 

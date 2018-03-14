@@ -52,14 +52,14 @@ object ClassSupports {
   }
 
   private def findClassByShortcutName(basePackages: Array[String], suffix: String): Option[Class[_]] = {
-    findClassByName(basePackages, suffix)(clazz => clazz.getName.split(PACKAGE_SEPARATOR).last == suffix)
+    findClassByFiltering(basePackages)(clazz => clazz.getName.split(PACKAGE_SEPARATOR).last == suffix)
   }
 
   private def findClassByAbsoluteName(basePackages: Array[String], name: String): Option[Class[_]] = {
-    findClassByName(basePackages, name)(clazz => clazz.getName == name)
+    findClassByFiltering(basePackages)(clazz => clazz.getName == name)
   }
 
-  private def findClassByName(basePackages: Array[String], name: String)(filter: Class[_] => Boolean): Option[Class[_]] = {
+  private def findClassByFiltering(basePackages: Array[String])(filter: Class[_] => Boolean): Option[Class[_]] = {
     
     lazy val classes = findAllClass(basePackages)
     val clazz = classes.filter(filter)
@@ -68,6 +68,22 @@ object ClassSupports {
       case clazz if clazz.length == 0 => None
       case clazz                      => None
     }
+  }
+  
+  private def findClassesByFiltering(basePackages: Array[String])(filter: Class[_] => Boolean): Array[Class[_]] = {
+    
+    lazy val classes = findAllClass(basePackages)
+    classes.filter(filter)
+  }
+  
+  def findClassBySuperClass(basePackages: Array[String], superclass: Class[_]): Option[Class[_]] = {
+    
+    findClassByFiltering(basePackages)(clazz => clazz.isInstance(superclass))
+  }
+  
+  def findClassBySuperClass[T](basePackage: String, superclass: Class[T]): Array[Class[T]] = {
+    
+    findClassesByFiltering(Array(basePackage))(clazz => clazz.isInstance(superclass)).map(clazz => clazz.asInstanceOf[Class[T]])
   }
   
   def genericType[T](clazz :Class[_], index:Int) :Class[T] = {

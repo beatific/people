@@ -7,27 +7,27 @@ import java.util.concurrent.BlockingQueue
 class Inbox[T](size: Int) {
 
   val inbox: ResizableBlockingQueue[T] = new ResizableBlockingQueue(size)
-
-  def take: T = synchronized ( inbox.take() )
   
-  def put(letter :T) = synchronized ( inbox.put(letter) )
-  
-  def >> : Option[T] = synchronized {
+  def remainingCapacity = inbox.remainingCapacity
 
-    inbox.isEmpty match {
-      case false => {
-        Some(inbox.take())
-      }
-      case true => None
+  def take: T = inbox.take()
+  
+  def put(letter :T) = inbox.put(letter)
+  
+  def >> : Option[T] = {
+
+    inbox.takeIfNotEmpty match {
+      case nullObject if nullObject == null => None
+      case letter => Some(letter)
     }
+    
   }
 
-  def +(letter: T): Option[Int] = synchronized {
+  def +(letter: T): Option[T] = {
 
-    inbox.remainingCapacity match {
-      case capacity if capacity > 0 =>
-        inbox.put(letter); Some(inbox.remainingCapacity)
-      case _                        => None
+    inbox.putIfNotFull(letter) match {
+      case true => Some(letter)
+      case false => None
     }
   }
 
