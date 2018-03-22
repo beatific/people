@@ -9,7 +9,7 @@ object PostOffice {
       case Some(inbox) =>
         inbox ++; inbox.asInstanceOf[Inbox[T]]
       case None => {
-        val inbox: Inbox[T] = new Inbox(worker.size)
+        val inbox: Inbox[T] = new Inbox(worker.size * 2)
         mailbox += (worker.id -> inbox)
         inbox
       }

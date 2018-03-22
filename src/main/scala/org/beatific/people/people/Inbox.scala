@@ -10,9 +10,18 @@ class Inbox[T](size: Int) {
   
   def remainingCapacity = inbox.remainingCapacity
 
-  def take: T = inbox.take()
+  def take: T = {
+    System.err.println("take start")
+    val t = inbox.take()
+    System.err.println("take end")
+    t
+  }
   
-  def put(letter :T) = inbox.put(letter)
+  def put(letter :T) = {
+    System.err.println(Thread.currentThread() + ": put start")
+    inbox.put(letter)
+    System.err.println("put end")
+  }
   
   def >> : Option[T] = {
 

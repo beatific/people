@@ -9,9 +9,6 @@ object People {
 
   var basePackage: String = null
 
-//  val time = Runtime.getRuntime.availableProcessors.threadpool
-  val time = 1.threadpool
-
   def apply[T](id: String): Option[People[T]] = {
 
     id.asClassOf(basePackage) match {

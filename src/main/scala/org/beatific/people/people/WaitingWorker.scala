@@ -10,26 +10,10 @@ object WaitingWorker {
 
 class WaitingWorker[T](worker: Worker[T]) extends People[T] {
   
-  override val size = worker.size
-  val id = worker.id
-  val inbox = worker.inbox
-  val time = worker.time
-  
-  private def readMore() {
-    inbox >> match {
-      case Some(taken) => receive(taken)
-      case None        =>
-    }
-  }
-  
-  private def read(letter : T) {
-    worker.read(letter)
-  }
-  
   def receive(letter: T) {
 
-    time(runnable = read(letter), onFinal = readMore) match {
-      case Unavailable => inbox put letter
+    worker.time(runnable = worker.read(letter)) match {
+      case Unavailable => worker.inbox put letter
       case Available =>
     }
   }

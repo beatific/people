@@ -7,13 +7,16 @@ import org.beatific.people.utils.ImplicitUtils._
 import org.beatific.people.utils.concurrency.Unavailable
 import org.beatific.people.utils.concurrency.Available
 import org.beatific.people.utils.concurrency.ThreadEach
+import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.Condition
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
 abstract class Worker[T] extends People[T] {
 
   val id: String = this.getClass.getName.substring(this.getClass.getName.lastIndexOf(".") + 1)
   val time = size.threadpool
   val inbox: Inbox[T] = PostOffice.inbox(this)
-
+  
   def remainingPeople() = {
     time.pool.active + inbox.remainingCapacity
   }
@@ -21,13 +24,18 @@ abstract class Worker[T] extends People[T] {
   HeadHunter + this
 
   private def readMore() {
+    System.err.println(Thread.currentThread() + ": readMore")
     inbox >> match {
       case Some(taken) => read(taken)
-      case None        => 
+      case None        => {
+        
+        System.err.println(Thread.currentThread() + ": readMore[None]")
+      }
     }
   }
 
   def read(letter: T) {
+    System.err.println(Thread.currentThread() + ": read")
     try work(letter)
     finally readMore()
   }

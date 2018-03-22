@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService
 class SeekableFile(name: String)(implicit pool :ExecutorService = Runtime.getRuntime.availableProcessors.threadpool.pool) {
 
   val path: Path = Paths.get(name)
+  System.err.println("thread pool size[" + pool.size + "]")
   
   def size = Files.size(path)
 
@@ -56,7 +57,8 @@ class SeekableFile(name: String)(implicit pool :ExecutorService = Runtime.getRun
 
     val iter: AsynchronousIterator = new AsynchronousIterator(channel.size, ByteBufferPool.CAPACITY, start, end)
 
-    iter.units.foreach(unit => {
+    for ( i <- 0 until iter.repetitions) {
+      val unit = iter.unit(i)
       val buffer: ByteBuffer = ByteBufferPool.get
       channel.read(buffer, unit.begin, unit,
         new CompletionHandler[Integer, AsynchronousUnit]() {
@@ -74,7 +76,7 @@ class SeekableFile(name: String)(implicit pool :ExecutorService = Runtime.getRun
             ByteBufferPool.release(buffer)
           }
         })
-    })
+    }
     end
   }
 
