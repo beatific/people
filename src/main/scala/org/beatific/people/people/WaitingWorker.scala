@@ -11,10 +11,7 @@ object WaitingWorker {
 class WaitingWorker[T](worker: Worker[T]) extends People[T] {
   
   def receive(letter: T) {
-
-    worker.time(runnable = worker.read(letter)) match {
-      case Unavailable => worker.inbox put letter
-      case Available =>
-    }
+    
+    worker.time.force(runnable = worker.read(letter))
   }
 }

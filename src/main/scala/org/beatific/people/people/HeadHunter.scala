@@ -34,9 +34,7 @@ object HeadHunter {
 
         human match {
           case Some(ailen) => ailen
-          case None => {
-            WaitingWorker(worker)
-          }
+          case None => worker
         }
       }
     }

@@ -6,7 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue
 
 object ByteBufferPool {
   
-  val CAPACITY = 1024
+  val CAPACITY = 1024 * 1024
   private val pool: ByteBufferPool = new ByteBufferPool(Runtime.getRuntime.availableProcessors(), CAPACITY)
   
   def get = pool.get

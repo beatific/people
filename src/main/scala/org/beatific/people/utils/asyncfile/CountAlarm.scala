@@ -16,27 +16,26 @@ class CountAlarm[T, V](last: Int)(implicit tag: ClassTag[T]) {
       current += 1
       current match {
         case n if n == last => f()
-        case c              => None
+        case c              => 
       }
     }
   }
 
   private def push(queue: List[T]): List[T] = {
 
-    cursor match {
-      case c if c >= last => queue
-      case c => {
-        
-        buffer(c) match {
-          case value if value == null => {
-            queue
-          }
+    buffer length match {
+      case length if length > 0 => {
+        buffer(0) match {
+          case value if value == null => queue
           case value => {
             cursor += 1
-            push(queue :+ buffer(c))
+            val newq = queue :+ buffer(0)
+            buffer = buffer.drop(1)
+            push(newq)
           }
         }
       }
+      case zero => queue
     }
   }
 
@@ -45,7 +44,7 @@ class CountAlarm[T, V](last: Int)(implicit tag: ClassTag[T]) {
   def countBySorted(index: Int, data: T, converter: List[T] => Option[List[V]], finish: => Unit): Option[List[V]] = {
 
     synchronized {
-      buffer.update(index, data)
+      buffer.update(index - cursor, data)
       current += 1
       current match {
         case n if n == last => finish

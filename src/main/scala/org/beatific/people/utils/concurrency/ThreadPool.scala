@@ -32,4 +32,17 @@ class ThreadPool(poolsize: Int) {
       case false => Unavailable
     }
   }
+
+  def force[T](runnable: => T, onSuccess: T => Unit = { r: T => () }, onFail: Throwable => Unit = t => (), onFinal: => Unit = ()) = synchronized {
+
+    pool.execute(new Runnable {
+      def run() {
+        try onSuccess(runnable) catch {
+          case NonFatal(e) => onFail(e)
+        } finally {
+          onFinal
+        }
+      }
+    })
+  }
 }

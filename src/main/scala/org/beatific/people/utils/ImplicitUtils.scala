@@ -6,7 +6,6 @@ import scalax.io.Resource
 import scalax.file.Path
 import net.liftweb.json.Serialization
 import net.liftweb.json._
-import org.beatific.people.utils.asyncfile.SeekableFile
 import scala.io.Source
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ThreadPoolExecutor
@@ -15,6 +14,7 @@ import org.beatific.people.utils.concurrency.ThreadPool
 import org.beatific.people.people.People
 import org.beatific.people.utils.reflection.ClassSupports
 import org.beatific.people.resource.Time
+import org.beatific.people.utils.asyncfile.AsyncFile
 
 object ImplicitUtils {
 
@@ -69,7 +69,7 @@ object ImplicitUtils {
 
   implicit class SingleStringUtils(val str: String) extends AnyVal {
 
-    def af = new SeekableFile(str)
+    def af = new AsyncFile(str)
     def f = new RandomAccessFile(str)
     def asClassOf(basePackage:String) = ClassSupports.findClassName(basePackage, str)
 

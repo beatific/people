@@ -18,41 +18,42 @@ abstract class Worker[T] extends People[T] {
   val inbox: Inbox[T] = PostOffice.inbox(this)
   
   def remainingPeople() = {
-    time.pool.active + inbox.remainingCapacity
+    time.pool.active/* + inbox.remainingCapacity*/
   }
 
   HeadHunter + this
 
   private def readMore() {
-    System.err.println(Thread.currentThread() + ": readMore")
+    
     inbox >> match {
-      case Some(taken) => read(taken)
-      case None        => {
-        
-        System.err.println(Thread.currentThread() + ": readMore[None]")
-      }
+      case Some(letter) => read(letter)
+      case None =>
     }
+//    System.err.println(Thread.currentThread() + ": readMore")
+//    read(inbox.take)
+//    System.err.println(Thread.currentThread() + ": readMore end")
   }
 
   def read(letter: T) {
-    System.err.println(Thread.currentThread() + ": read")
-    try work(letter)
-    finally readMore()
+    work(letter)
+//    finally readMore()
   }
 
   protected def work(working: T)
 
   def receive(letter: T) {
 
-    time(runnable = read(letter)) match {
-      case Unavailable => {
-        inbox + letter match {
-          case None    => HeadHunter << (this, letter)
-          case Some(_) =>
-        }
-      }
-      case Available =>
-    }
+    time.force(runnable = read(letter))
+//    time(runnable = read(letter)) match {
+//      case Unavailable => {
+//        inbox put letter
+//        inbox + letter match {
+//          case None    => HeadHunter << (this, letter)
+//          case Some(_) =>
+//        }
+//      }
+//      case Available =>
+//    }
   }
 
 }

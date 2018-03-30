@@ -59,11 +59,14 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 	 */
 	private void signalNotEmpty() {
 		final ReentrantLock takeLock = this.takeLock;
+		System.err.println(Thread.currentThread() + " : signalNotEmpty / takeLock.lock(); / " + count.get());
 		takeLock.lock();
 		try {
+			System.err.println(Thread.currentThread() + " : signalNotEmpty / notEmpty.signal(); / " + count.get());
 			notEmpty.signal();
 		} finally {
 			takeLock.unlock();
+			System.err.println(Thread.currentThread() + " : signalNotEmpty / takeLock.unlock(); / " + count.get());
 		}
 	}
 
@@ -113,11 +116,14 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 	 */
 	private void signalNotFull() {
 		final ReentrantLock putLock = this.putLock;
+		System.err.println(Thread.currentThread() + " : signalNotFull / putLock.lock(); / " + count.get());
 		putLock.lock();
 		try {
+			System.err.println(Thread.currentThread() + " : signalNotFull / notFull.signal(); / " + count.get());
 			notFull.signal();
 		} finally {
 			putLock.unlock();
+			System.err.println(Thread.currentThread() + " : signalNotFull / putLock.unlock(); / " + count.get());
 		}
 	}
 
@@ -273,6 +279,7 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 		Node<E> node = new Node<E>(e);
 		final ReentrantLock putLock = this.putLock;
 		final AtomicInteger count = this.count;
+		System.err.println(Thread.currentThread() + " : put / putLock.lockInterruptibly(); / " + count.get());
 		putLock.lockInterruptibly();
 		try {
 			/*
@@ -283,17 +290,23 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 			 * other wait guards.
 			 */
 			while (count.get() == capacity) {
+				System.err.println(Thread.currentThread() + " : put / notFull.await(); / " + count.get() + " / " + capacity);
 				notFull.await();
 			}
 			enqueue(node);
 			c = count.getAndIncrement();
-			if (c + 1 < capacity)
+			if (c + 1 < capacity) {
 				notFull.signal();
+			    System.err.println(Thread.currentThread() + " : put / notFull.signal(); / " + c + " / " + capacity);
+			}
 		} finally {
 			putLock.unlock();
+			System.err.println(Thread.currentThread() + " : put / putLock.unlock(); / " + count.get());
 		}
+		
 		if (c == 0)
 			signalNotEmpty();
+		
 	}
 	
 	public boolean putIfNotFull(E e) throws InterruptedException {
@@ -305,6 +318,7 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 		Node<E> node = new Node<E>(e);
 		final ReentrantLock putLock = this.putLock;
 		final AtomicInteger count = this.count;
+		System.err.println(Thread.currentThread() + " : putIfNotFull / putLock.lockInterruptibly(); / " + count.get());
 		putLock.lockInterruptibly();
 		try {
 			/*
@@ -323,6 +337,7 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 				notFull.signal();
 		} finally {
 			putLock.unlock();
+			System.err.println(Thread.currentThread() + " : putIfNotFull / putLock.unlock(); / " + count.get());
 		}
 		if (c == 0)
 			signalNotEmpty();
@@ -409,6 +424,7 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 		int c = -1;
 		final AtomicInteger count = this.count;
 		final ReentrantLock takeLock = this.takeLock;
+		System.err.println(Thread.currentThread() + " : takeIfNotEmpty / takeLock.lockInterruptibly(); / " + count.get());
 		takeLock.lockInterruptibly();
 		try {
 			if (count.get() == 0) {
@@ -420,6 +436,7 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 				notEmpty.signal();
 		} finally {
 			takeLock.unlock();
+			System.err.println(Thread.currentThread() + " : takeIfNotEmpty / takeLock.unlock(); / " + count.get());
 		}
 		if (c == capacity)
 			signalNotFull();
@@ -432,20 +449,29 @@ public class ResizableBlockingQueue<E> extends AbstractQueue<E> implements Block
 		int c = -1;
 		final AtomicInteger count = this.count;
 		final ReentrantLock takeLock = this.takeLock;
+		System.err.println(Thread.currentThread() + " : take / takeLock.lockInterruptibly(); / " + count.get());
 		takeLock.lockInterruptibly();
 		try {
 			while (count.get() == 0) {
+				System.err.println(Thread.currentThread() + " : take / notEmpty.await(); / " + count.get() + " / " + capacity);
 				notEmpty.await();
 			}
 			x = dequeue();
 			c = count.getAndDecrement();
-			if (c > 1)
+			if (c > 1) {
+				System.err.println(Thread.currentThread() + " : take / notEmpty.signal(); / " + c + " / " + capacity);
 				notEmpty.signal();
+			}
+			
 		} finally {
 			takeLock.unlock();
+			System.err.println(Thread.currentThread() + " : take / takeLock.unlock(); / " + count.get());
 		}
-		if (c == capacity)
+		System.err.println(Thread.currentThread() + " : take / signalNotFull(); / "  + c + " / " + capacity);
+		if (c == capacity) {
+			System.err.println(Thread.currentThread() + " : take / signalNotFull2(); / "  + c + " / " + capacity);
 			signalNotFull();
+		}
 		return x;
 	}
 

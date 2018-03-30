@@ -20,8 +20,8 @@ object People {
 
 trait People[T] {
 
-//  val size: Int = Runtime.getRuntime.availableProcessors
-  val size: Int = 1
+  val size: Int = Runtime.getRuntime.availableProcessors
+//  val size: Int = 1
 
   def receive(letter: T)
 
