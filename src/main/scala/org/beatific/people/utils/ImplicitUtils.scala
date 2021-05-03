@@ -122,7 +122,7 @@ object ImplicitUtils {
 
     def removeAfterString(from: String): List[String] = {
       str.map {
-        case line if line.contains("from") => {
+        case line if line.contains(from) => {
           var fromline = line.indexOf(from)
           line.substring(0, fromline)
         }
